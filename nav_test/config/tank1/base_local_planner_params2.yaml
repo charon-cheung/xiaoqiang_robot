@@ -1,0 +1,79 @@
+controller_frequency: 15.0
+recovery_behavior_enabled: false
+clearing_rotation_allowed: false
+latch_xy_goal_tolerance: true
+
+ADDWAPlannerROS:
+    acc_lim_x: 1.5
+    acc_lim_y: 0
+    acc_lim_th: 8
+    max_trans_vel: 0.5
+    min_trans_vel: 0.0
+    max_vel_x: 0.5
+    min_vel_x: 0.0
+    max_vel_y: 0
+    min_vel_y: 0
+    max_rot_vel: 0.5
+    min_rot_vel: -0.5
+
+    yaw_goal_tolerance: 0.1
+    xy_goal_tolerance: 0.1
+    latch_xy_goal_tolerance: true
+
+    sim_time: 2.0
+    sim_granularity: 0.05
+    vx_samples: 20
+    vy_samples: 1
+    vtheta_samples: 20
+
+
+    path_distance_bias: 0.4
+    goal_distance_bias: 10.0
+    front_distance_bias: 10.0
+    occdist_scale: 0.01
+    forward_point_distance: 0.325
+    stop_time_buffer: 0.2
+    scaling_speed: 0.25
+    max_scaling_factor: 0.2
+    oscillation_reset_dist: 0.15
+    prune_plan: true
+
+    using_kinect: true
+    pub_localgrid: true
+    # transform rotation matrix
+    R: [1., 0., 0., 0., 1., 0., 0., 0., 1.0]
+    # transform trasition vector
+    T: [-0.1,0.,0.]
+    # localgridmap cell size
+    resolution: 0.05
+    # localgridmap half cells num of echo side
+    half_length: 100
+    # the min distance between base_footprint and bar
+    bar_distance_min: 0.6
+
+    using_laserscan: true
+    #laserscan_topic: scan
+    # transform rotation matrix
+    R_laserscan: [-1., 0., 0., -1.]
+    # transform trasition vector
+    T_laserscan: [-0.3,0.]
+
+    decay_value: 15
+    add_value: 20
+
+    distance_scale: 3.14
+    path_costheta: -0.5 #120 degree
+    forward_dist: 0.25
+    forward_width: 0.45
+    rot_width: 0.5
+    plan_width: 0.45
+    PathChange: false
+    PathChangeLazy: true
+
+    look_ahead_dist: 0.4
+    theta_max: 0.4
+    linear_v: 0.5
+    k2: 0.8
+    kp: 0.6
+    ki: 0.5
+    kd: 0.8
