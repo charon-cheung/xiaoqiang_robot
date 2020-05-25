@@ -249,18 +249,14 @@ void StatusPublisher::Refresh()
     var_angle = (0.01f / 180.0f * PI) * (0.01f / 180.0f * PI);
 
     delta_car = (car_status.encoder_delta_r + car_status.encoder_delta_l) / 2.0f * 1.0f / car_status.encoder_ppr * 2.0f * PI * wheel_radius;
-    if (delta_car > 0.05 || delta_car < -0.05)
+    if (delta_car > 0.02 || delta_car < -0.02)
     {
-      // std::cout<<"get you!"<<std::endl;
+      ROS_WARN("encoder delta l or r is too low");
       delta_car = 0;
     }
-    // if(ii%50==0||car_status.encoder_delta_car>3000||car_status.encoder_delta_car<-3000)
-    // {
-    //   std::cout<<"delta_encoder_car:"<< car_status.encoder_delta_car <<std::endl;
-    //   std::cout<<"delta_encoder_r:"<< car_status.encoder_delta_r <<std::endl;
-    //   std::cout<<"delta_encoder_l:"<< car_status.encoder_delta_l <<std::endl;
-    //   std::cout<<"ppr:"<< car_status.encoder_ppr <<std::endl;
-    // }
+    
+    ROS_INFO("encoder_delta_r: %d, encoder_delta_l: %d",encoder_delta_r,encoder_delta_l);
+
     delta_x = delta_car * cos(CarPos2D.theta * PI / 180.0f);
     delta_y = delta_car * sin(CarPos2D.theta * PI / 180.0f);
 

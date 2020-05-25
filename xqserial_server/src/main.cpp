@@ -73,7 +73,7 @@ int main(int argc, char **argv)
         serial.write(resetCmd, 5);
         ros::Duration(0.5).sleep();
 
-        ros::Rate r(100); //发布周期为50hz
+        ros::Rate r(120); //发布周期为50hz
 
         while (ros::ok())
         {
@@ -83,8 +83,6 @@ int main(int argc, char **argv)
                 break;
             }
             xq_status.Refresh(); //定时发布状态
-            double car_speed[2];
-            xq_status.get_wheel_speed(car_speed);
             r.sleep();
             //cout<<"run"<<endl;
         }
