@@ -15,7 +15,7 @@ StatusPublisher::StatusPublisher()
 {
   mbUpdated = false;
   wheel_separation = 0.37;
-  wheel_radius = 0.06;
+  wheel_radius = 0.0625;
 
   CarPos2D.x = 0.0;
   CarPos2D.y = 0.0;
@@ -60,11 +60,13 @@ StatusPublisher::StatusPublisher()
   base_time_ = ros::Time::now().toSec();
 }
 
-StatusPublisher::StatusPublisher(double separation, double radius)
+StatusPublisher::StatusPublisher(double separation, double radius, double leftRadius, double rightRadius)
 {
   new (this) StatusPublisher();
   wheel_separation = separation;
   wheel_radius = radius;
+  left_radius = leftRadius;
+  right_radius = rightRadius;
 }
 
 void StatusPublisher::Update(const char data[], unsigned int len)

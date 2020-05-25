@@ -45,7 +45,7 @@ class StatusPublisher
 
   public:
     StatusPublisher();
-    StatusPublisher(double separation, double radius);
+    StatusPublisher(double separation, double radius, double leftRadius, double rightRadius);
     void Refresh();
     void Update(const char *data, unsigned int len);
     double get_wheel_separation();
@@ -63,8 +63,8 @@ class StatusPublisher
     //Wheel separation, wrt the midpoint of the wheel width: meters
     double wheel_separation;
 
-    //Wheel radius (assuming it's the same for the left and right wheels):meters
-    double wheel_radius;
+    //轮半径，单位米。目前假设两个轮子的半径都相同
+    double wheel_radius,left_radius,right_radius;
     double car_vel[2];
     geometry_msgs::Pose2D CarPos2D; // 小车开始启动原点坐标系
     geometry_msgs::Twist CarTwist;  // 小车自身坐标系
