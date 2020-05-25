@@ -44,9 +44,11 @@ StatusPublisher::StatusPublisher()
   mTwistPub = mNH.advertise<geometry_msgs::Twist>("xqserial_server/Twist", 1, true);
   mPowerPub = mNH.advertise<std_msgs::Float64>("xqserial_server/Power", 1, true);
   mOdomPub = mNH.advertise<nav_msgs::Odometry>("xqserial_server/Odom", 1, true);
+  mIMUPub = mNH.advertise<sensor_msgs::Imu>("xqserial_server/IMU", 1, true);
+  motionPub = mNh.advertise<zzp_msgs::Motion>("xqserial_server/Motion", 1, true);
+
   pub_barpoint_cloud_ = mNH.advertise<PointCloud>("kinect/barpoints", 1, true);
   pub_clearpoint_cloud_ = mNH.advertise<PointCloud>("kinect/clearpoints", 1, true);
-  mIMUPub = mNH.advertise<sensor_msgs::Imu>("xqserial_server/IMU", 1, true);
   /* static tf::TransformBroadcaster br;
    tf::Quaternion q;
    tf::Transform transform;
@@ -479,8 +481,17 @@ void StatusPublisher::Refresh()
 
     mIMUPub.publish(CarIMU);
 
+    // 发布左右轮速度，左右轮半径，轮间距
+    get_wheel_speed(car_vel);
+    
+    CarMotion.leftVel = car_vel[1];
+    CarMotion.rightVel = car_vel[0];
+    CarMotion.wheelSeparation = wheel_separation;
+    // leftRadius
+    // rightRadius
+    motionPub.publish(CarMotion);
+    
     // pub transform
-
     static tf::TransformBroadcaster br;
     tf::Quaternion q;
     tf::Transform transform;
@@ -513,10 +524,11 @@ int StatusPublisher::get_wheel_ppr()
 void StatusPublisher::get_wheel_speed(double speed[2])
 {
   //右一左二
+  if(car_status.omga_r == 0 || car_status.omga_l == 0 )
+    return;
+
   speed[0] = car_status.omga_r / car_status.encoder_ppr * 2.0 * PI * wheel_radius;
   speed[1] = car_status.omga_l / car_status.encoder_ppr * 2.0 * PI * wheel_radius;
-  if(fabs(speed[0]) >0  && fabs(speed[1])>0 )
-    ROS_INFO("right wheel vel: %f, left wheel vel: %f", speed[0], speed[1] );
 }
 
 double getLeftVel()

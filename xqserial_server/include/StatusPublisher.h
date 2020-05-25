@@ -15,8 +15,9 @@
 #include <sensor_msgs/point_cloud2_iterator.h>
 #include <sensor_msgs/PointField.h>
 #include <sensor_msgs/Imu.h>
+#include "zzp_msgs/Motion.h"
 
-#define PI 3.14159265
+#define PI 3.14159265359
 
 namespace xqserial_server
 {
@@ -64,17 +65,22 @@ class StatusPublisher
 
     //Wheel radius (assuming it's the same for the left and right wheels):meters
     double wheel_radius;
-
+    double car_vel[2];
     geometry_msgs::Pose2D CarPos2D; // 小车开始启动原点坐标系
     geometry_msgs::Twist CarTwist;  // 小车自身坐标系
     std_msgs::Float64 CarPower;     // 小车电池信息
     nav_msgs::Odometry CarOdom;     // 小车位置和速度信息
+    sensor_msgs::Imu CarIMU;
+    zzp_msgs::Motion CarMotion;
+
     ros::NodeHandle mNH;
     ros::Publisher mPose2DPub;
     ros::Publisher mTwistPub;
     ros::Publisher mStatusFlagPub;
     ros::Publisher mPowerPub;
     ros::Publisher mOdomPub;
+    ros::Publisher mIMUPub;
+    ros::Publisher motionPub;
     ros::Publisher pub_barpoint_cloud_;
     ros::Publisher pub_clearpoint_cloud_;
 
@@ -82,9 +88,6 @@ class StatusPublisher
 
     boost::mutex mMutex;
     double base_time_;
-
-    ros::Publisher mIMUPub;
-    sensor_msgs::Imu CarIMU;
 };
 
 } //namespace xqserial_server
