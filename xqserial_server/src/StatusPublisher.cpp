@@ -45,7 +45,7 @@ StatusPublisher::StatusPublisher()
   mPowerPub = mNH.advertise<std_msgs::Float64>("xqserial_server/Power", 1, true);
   mOdomPub = mNH.advertise<nav_msgs::Odometry>("xqserial_server/Odom", 1, true);
   mIMUPub = mNH.advertise<sensor_msgs::Imu>("xqserial_server/IMU", 1, true);
-  motionPub = mNh.advertise<zzp_msgs::Motion>("xqserial_server/Motion", 1, true);
+  motionPub = mNH.advertise<xqserial_server::Motion>("xqserial_server/Motion", 1, true);
 
   pub_barpoint_cloud_ = mNH.advertise<PointCloud>("kinect/barpoints", 1, true);
   pub_clearpoint_cloud_ = mNH.advertise<PointCloud>("kinect/clearpoints", 1, true);
@@ -254,8 +254,8 @@ void StatusPublisher::Refresh()
       ROS_WARN("encoder delta l or r is too low");
       delta_car = 0;
     }
-    
-    ROS_INFO("encoder_delta_r: %d, encoder_delta_l: %d",encoder_delta_r,encoder_delta_l);
+    //if( car_status.encoder_delta_r * car_status.encoder_delta_l != 0 ) 
+      //ROS_INFO("encoder_delta_r: %d, encoder_delta_l: %d", car_status.encoder_delta_r, car_status.encoder_delta_l);
 
     delta_x = delta_car * cos(CarPos2D.theta * PI / 180.0f);
     delta_y = delta_car * sin(CarPos2D.theta * PI / 180.0f);
@@ -484,8 +484,9 @@ void StatusPublisher::Refresh()
     CarMotion.leftVel = car_vel[1];
     CarMotion.rightVel = car_vel[0];
     CarMotion.wheelSeparation = wheel_separation;
-    // leftRadius
-    // rightRadius
+    CarMotion.leftRadius = left_radius;
+    CarMotion.rightRadius = right_radius;
+    //if(fabs(car_vel[0]) > 0.05 && fabs(car_vel[0]) > 0.05)
     motionPub.publish(CarMotion);
 
     // pub transform
@@ -524,8 +525,9 @@ void StatusPublisher::get_wheel_speed(double speed[2])
   if(car_status.omga_r == 0 || car_status.omga_l == 0 )
     return;
 
-  speed[0] = car_status.omga_r / car_status.encoder_ppr * 2.0 * PI * wheel_radius;
-  speed[1] = car_status.omga_l / car_status.encoder_ppr * 2.0 * PI * wheel_radius;
+  speed[0] = static_cast<double>(car_status.omga_r) / car_status.encoder_ppr * 2.0 * PI * wheel_radius;
+  speed[1] = static_cast<double>(car_status.omga_l) / car_status.encoder_ppr * 2.0 * PI * wheel_radius;
+  
 }
 
 geometry_msgs::Pose2D StatusPublisher::get_CarPos2D()

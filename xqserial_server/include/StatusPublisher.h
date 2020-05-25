@@ -15,7 +15,7 @@
 #include <sensor_msgs/point_cloud2_iterator.h>
 #include <sensor_msgs/PointField.h>
 #include <sensor_msgs/Imu.h>
-#include "zzp_msgs/Motion.h"
+#include <xqserial_server/Motion.h>
 
 #define PI 3.14159265359
 
@@ -71,7 +71,7 @@ class StatusPublisher
     std_msgs::Float64 CarPower;     // 小车电池信息
     nav_msgs::Odometry CarOdom;     // 小车位置和速度信息
     sensor_msgs::Imu CarIMU;
-    zzp_msgs::Motion CarMotion;
+    xqserial_server::Motion CarMotion;
 
     ros::NodeHandle mNH;
     ros::Publisher mPose2DPub;

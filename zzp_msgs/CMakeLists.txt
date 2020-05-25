@@ -4,15 +4,14 @@ project(zzp_msgs)
 find_package(catkin REQUIRED COMPONENTS message_generation std_msgs geometry_msgs nav_msgs sensor_msgs)
 
 add_message_files(
-  DIRECTORY msg
   FILES
   Motion.msg
 
 )
 
-add_service_files(
-  FILES
-)
+#add_service_files(
+# FILES
+#)
 
 generate_messages(DEPENDENCIES std_msgs geometry_msgs nav_msgs sensor_msgs)
 
