@@ -258,7 +258,6 @@ void StatusPublisher::Refresh()
     //   std::cout<<"delta_encoder_r:"<< car_status.encoder_delta_r <<std::endl;
     //   std::cout<<"delta_encoder_l:"<< car_status.encoder_delta_l <<std::endl;
     //   std::cout<<"ppr:"<< car_status.encoder_ppr <<std::endl;
-    //   std::cout<<"delta_car:"<< delta_car <<std::endl;
     // }
     delta_x = delta_car * cos(CarPos2D.theta * PI / 180.0f);
     delta_y = delta_car * sin(CarPos2D.theta * PI / 180.0f);
@@ -490,7 +489,7 @@ void StatusPublisher::Refresh()
     // leftRadius
     // rightRadius
     motionPub.publish(CarMotion);
-    
+
     // pub transform
     static tf::TransformBroadcaster br;
     tf::Quaternion q;
@@ -529,11 +528,6 @@ void StatusPublisher::get_wheel_speed(double speed[2])
 
   speed[0] = car_status.omga_r / car_status.encoder_ppr * 2.0 * PI * wheel_radius;
   speed[1] = car_status.omga_l / car_status.encoder_ppr * 2.0 * PI * wheel_radius;
-}
-
-double getLeftVel()
-{
-  car_status.omga_r / car_status.encoder_ppr * 2.0 * PI * wheel_radius;
 }
 
 geometry_msgs::Pose2D StatusPublisher::get_CarPos2D()
