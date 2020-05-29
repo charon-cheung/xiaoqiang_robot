@@ -1,0 +1,11 @@
+digraph G {
+"odom" -> "base_link"[label="Broadcaster: /play_1590636140620420327\nAverage rate: 50.055 Hz\nMost recent transform: 1509710934.538 \nBuffer length: 4.955 sec\n"];
+"base_link" -> "camera_link"[label="Broadcaster: /play_1590636140620420327\nAverage rate: 33.207 Hz\nMost recent transform: 1509710934.981 \nBuffer length: 4.878 sec\n"];
+"base_link" -> "base_laser"[label="Broadcaster: /play_1590636140620420327\nAverage rate: 33.207 Hz\nMost recent transform: 1509710934.981 \nBuffer length: 4.878 sec\n"];
+"base_link" -> "sonar0_link"[label="Broadcaster: /play_1590636140620420327\nAverage rate: 33.207 Hz\nMost recent transform: 1509710934.981 \nBuffer length: 4.878 sec\n"];
+"base_link" -> "sonar1_link"[label="Broadcaster: /play_1590636140620420327\nAverage rate: 33.207 Hz\nMost recent transform: 1509710934.981 \nBuffer length: 4.878 sec\n"];
+"base_link" -> "sonar2_link"[label="Broadcaster: /play_1590636140620420327\nAverage rate: 33.207 Hz\nMost recent transform: 1509710934.981 \nBuffer length: 4.878 sec\n"];
+"base_link" -> "sonar3_link"[label="Broadcaster: /play_1590636140620420327\nAverage rate: 33.207 Hz\nMost recent transform: 1509710934.981 \nBuffer length: 4.878 sec\n"];
+"base_link" -> "sonar4_link"[label="Broadcaster: /play_1590636140620420327\nAverage rate: 33.207 Hz\nMost recent transform: 1509710934.981 \nBuffer length: 4.878 sec\n"];
+"base_link" -> "sonar5_link"[label="Broadcaster: /play_1590636140620420327\nAverage rate: 33.207 Hz\nMost recent transform: 1509710934.981 \nBuffer length: 4.878 sec\n"];
+}
