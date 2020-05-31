@@ -4,21 +4,12 @@
 2.  进入到 /bag目录下，运行指令：rosbag play - -clock gmapping.bag。
 3.  在rviz中查看建图结果。
 4.  gmapping_sim.launch文件位于gmapping/slam_gmapping/gmapping/launch目录下。
-
-
-## gmapping 代码流程
-
-![1555126014034](README.assets/1555126014034.png)
-
-`GridSlamProcessor`构造函数其实有用的就一句`period_ = 5.0;`，其他是参数赋值，但在`initMapper`里又会重新赋值，其实是多余的。
-
-
 **********
-​	addScan函数：成功将测量值加入之后，在Lasercallback下面就是两个坐标系的变换。addscan函数是主要函数，在该函数中成功获取到里程计位姿后，根据激光雷达的安装方式，对角度进行修改。然后将ROS的激光雷达采集的信息转换成gmapping能看懂的格式。设置和激光数据时间戳匹配的机器人的位姿。调用processscan函数。
+​    addScan函数：成功将测量值加入之后，在Lasercallback下面就是两个坐标系的变换。addscan函数是主要函数，在该函数中成功获取到里程计位姿后，根据激光雷达的安装方式，对角度进行修改。然后将ROS的激光雷达采集的信息转换成gmapping能看懂的格式。设置和激光数据时间戳匹配的机器人的位姿。调用processscan函数。
 
 ​	Processscan函数：processscan函数在gridslamprocessor.cpp中，首先获取当前的位姿，然后在从里程计运动模型获取位姿，这里调用drawFromMotion函数，这个函数在motionmodel.cpp中.因为有这步，所以特别依赖里程计信息
 
-`drawFromMotion`函数中的`sampleGaussian`函数是形参作为方差，均值为0的高斯分布。`sampleGaussian`函数是数值分析所近似生成的高斯分布，具体的函数实现在stat.cpp中。当前位姿与上一次位姿做差，计算做累计角度偏差和位移偏差。利用激光雷达测得距离做得分处理。非首帧调用scanMatch，upDateTreeWeight,resample。首帧则调用invalidActiveArea,computeActiveArea,registerScan。
+当前位姿与上一次位姿做差，计算做累计角度偏差和位移偏差。利用激光雷达测得距离做得分处理。非首帧调用scanMatch，upDateTreeWeight,resample。首帧则调用invalidActiveArea,computeActiveArea,registerScan。
 
 地图更新updateMap()得到最优的粒子，按照他的扫描数据，利用占据栅格地图算法，更新地图。
 **********
@@ -26,7 +17,9 @@
 
  	$w ( x ) = \frac { \mathrm { f } ( \mathrm { x } ) } { \mathrm { g } ( \mathrm { x } ) }$为x的粒子的权重。这反映了建议分布g(x)与目标分布f(x)的匹配程度。相似度越大，权重越大，重要性采样也就是根据建议分布样本匹配获取f(x)的样本。接下来将权重进行归一化处理，为重采样做准备。归一化之后，权重大的样本说明与目标分布匹配高是下次采样的重点，重新分布样本，在重点地区，重点查，将权重进行了0-1分布。权重大的粒子所占的比例就大，选中的机率也就大，这也就解决如何“查”重点地区的问题。这些就是粒子滤波的重要流程，这些在Processscan函数里有体现。
 
-​	scanMach:scanMach，该函数在gridslamprocessor.hxx中，对粒子的最优位姿进行计算：optimize，该函数在scanmacher.cpp；计算粒子最优位姿后，重新计算粒子的权重；粒子的权重由粒子的似然表示的，计算出来最优的位姿后，进行了地图的扩充。Optimize首先计算当前位置的得分，调用score函数，score函数在scanmacher.h。当前得分比上一次的得分差，要减少搜索步长，得到周围的方向里面最好的一个位姿和对应的得分。返回最优的位置和得分。计算当前的位姿和初始位姿的区别，区别越大增益越小。增益的计算odo_gain*=exp(-m_angularOdometryReliability*dth)，-m_angularOdometryReliability为角度里程计的依赖，就是相信传感器传来的数据程度。dth为角度变化量。线性距离也是这样的。计算当前位姿的角度和初始角度的区别，如果里程计比较可靠的话，那么进行匹配的时候就需要对离初始位姿比较远的位姿施加惩罚 ，得分=增益 得分。
+​	scanMach:scanMach，该函数在gridslamprocessor.hxx中，对粒子的最优位姿进行计算：optimize，该函数在scanmacher.cpp；计算粒子最优位姿后，重新计算粒子的权重；粒子的权重由粒子的似然表示的，计算出来最优的位姿后，进行了地图的扩充。Optimize首先计算当前位置的得分，调用score函数，score函数在scanmacher.h。当前得分比上一次的得分差，要减少搜索步长，得到周围的方向里面最好的一个位姿和对应的得分。返回最优的位置和得分。计算当前的位姿和初始位姿的区别，区别越大增益越小。增益的计算`odo_gain*=exp(-m_angularOdometryReliability*dth)`
+
+`-m_angularOdometryReliability`为角度里程计的依赖，就是相信传感器传来的数据程度。dth为角度变化量。线性距离也是这样的。计算当前位姿的角度和初始角度的区别，如果里程计比较可靠的话，那么进行匹配的时候就需要对离初始位姿比较远的位姿施加惩罚 ，得分=增益 得分。
 
 ​	Score：score函数和likelihoodandscore函数都在scanmacher.h。这两个函数比较类似。score函数该函数先将激光雷达的坐标转换到世界坐标，先转换到机器人的坐标系。然后转到世界坐标。激光雷达击中到某一点，沿着激光方向的前一个点必是未击中的，得到击中点的栅格和前一个点的栅格。如果搜索出最优最可能被这个激光束击中的点，计算得分并返回该得分，得分公式为$\exp \left( \frac { - d ^ { 2 } } { \operatorname { sig } m a } \right)$ ，likelihoodandscore与其类似。
 
