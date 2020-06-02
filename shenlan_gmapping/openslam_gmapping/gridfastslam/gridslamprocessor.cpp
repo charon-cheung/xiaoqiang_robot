@@ -73,16 +73,16 @@ using namespace std;
     m_angularThresholdDistance=gsp.m_angularThresholdDistance;
     m_obsSigmaGain=gsp.m_obsSigmaGain;
     
-#ifdef MAP_CONSISTENCY_CHECK
-    cerr << __PRETTY_FUNCTION__ <<  ": trajectories copy.... ";
-#endif
-    TNodeVector v=gsp.getTrajectories();
-    for (unsigned int i=0; i<v.size(); i++){
-		m_particles[i].node=v[i];
-    }
-#ifdef MAP_CONSISTENCY_CHECK
-    cerr <<  "end" << endl;
-#endif
+    #ifdef MAP_CONSISTENCY_CHECK
+        cerr << __PRETTY_FUNCTION__ <<  ": trajectories copy.... ";
+    #endif
+        TNodeVector v=gsp.getTrajectories();
+        for (unsigned int i=0; i<v.size(); i++){
+    		m_particles[i].node=v[i];
+        }
+    #ifdef MAP_CONSISTENCY_CHECK
+        cerr <<  "end" << endl;
+    #endif
 
 
     cerr  << "Tree: normalizing, resetting and propagating weights within copy construction/cloneing ..." ;
@@ -100,74 +100,75 @@ using namespace std;
   }
 
   GridSlamProcessor* GridSlamProcessor::clone() const
-  {
-# ifdef MAP_CONSISTENCY_CHECK
-    cerr << __PRETTY_FUNCTION__ << ": performing preclone_fit_test" << endl;
-    typedef std::map<autoptr< Array2D<PointAccumulator> >::reference* const, int> PointerMap;
-    PointerMap pmap;
-	for (ParticleVector::const_iterator it=m_particles.begin(); it!=m_particles.end(); it++){
-	  const ScanMatcherMap& m1(it->map);
-	  const HierarchicalArray2D<PointAccumulator>& h1(m1.storage());
- 	  for (int x=0; x<h1.getXSize(); x++){
-	    for (int y=0; y<h1.getYSize(); y++){
-	      const autoptr< Array2D<PointAccumulator> >& a1(h1.m_cells[x][y]);
-	      if (a1.m_reference){
-		PointerMap::iterator f=pmap.find(a1.m_reference);
-		if (f==pmap.end())
-		  pmap.insert(make_pair(a1.m_reference, 1));
-		else
-		  f->second++;
-	      }
-	    }
-	  }
-	}
-	cerr << __PRETTY_FUNCTION__ <<  ": Number of allocated chunks" << pmap.size() << endl;
-	for(PointerMap::const_iterator it=pmap.begin(); it!=pmap.end(); it++)
-	  assert(it->first->shares==(unsigned int)it->second);
+ {
+    # ifdef MAP_CONSISTENCY_CHECK
+        cerr << __PRETTY_FUNCTION__ << ": performing preclone_fit_test" << endl;
+        typedef std::map<autoptr< Array2D<PointAccumulator> >::reference* const, int> PointerMap;
+        PointerMap pmap;
+    	for (ParticleVector::const_iterator it=m_particles.begin(); it!=m_particles.end(); it++){
+    	  const ScanMatcherMap& m1(it->map);
+    	  const HierarchicalArray2D<PointAccumulator>& h1(m1.storage());
+     	  for (int x=0; x<h1.getXSize(); x++){
+    	    for (int y=0; y<h1.getYSize(); y++){
+    	      const autoptr< Array2D<PointAccumulator> >& a1(h1.m_cells[x][y]);
+    	      if (a1.m_reference){
+    		PointerMap::iterator f=pmap.find(a1.m_reference);
+    		if (f==pmap.end())
+    		  pmap.insert(make_pair(a1.m_reference, 1));
+    		else
+    		  f->second++;
+    	      }
+    	    }
+    	  }
+    	}
+    	cerr << __PRETTY_FUNCTION__ <<  ": Number of allocated chunks" << pmap.size() << endl;
+    	for(PointerMap::const_iterator it=pmap.begin(); it!=pmap.end(); it++)
+    	  assert(it->first->shares==(unsigned int)it->second);
 
-	cerr << __PRETTY_FUNCTION__ <<  ": SUCCESS, the error is somewhere else" << endl;
-# endif
-	GridSlamProcessor* cloned=new GridSlamProcessor(*this);
+    	cerr << __PRETTY_FUNCTION__ <<  ": SUCCESS, the error is somewhere else" << endl;
+    # endif
+    	GridSlamProcessor* cloned=new GridSlamProcessor(*this);
 	
-# ifdef MAP_CONSISTENCY_CHECK
-	cerr << __PRETTY_FUNCTION__ <<  ": trajectories end" << endl;
-	cerr << __PRETTY_FUNCTION__ << ": performing afterclone_fit_test" << endl;
-	ParticleVector::const_iterator jt=cloned->m_particles.begin();
-	for (ParticleVector::const_iterator it=m_particles.begin(); it!=m_particles.end(); it++){
-	  const ScanMatcherMap& m1(it->map);
-	  const ScanMatcherMap& m2(jt->map);
-	  const HierarchicalArray2D<PointAccumulator>& h1(m1.storage());
-	  const HierarchicalArray2D<PointAccumulator>& h2(m2.storage());
-	  jt++;
- 	  for (int x=0; x<h1.getXSize(); x++){
-	    for (int y=0; y<h1.getYSize(); y++){
-	      const autoptr< Array2D<PointAccumulator> >& a1(h1.m_cells[x][y]);
-	      const autoptr< Array2D<PointAccumulator> >& a2(h2.m_cells[x][y]);
-	      assert(a1.m_reference==a2.m_reference);
-	      assert((!a1.m_reference) || !(a1.m_reference->shares%2));
-	    }
-	  }
-	}
-	cerr << __PRETTY_FUNCTION__ <<  ": SUCCESS, the error is somewhere else" << endl;
-# endif
-	return cloned;
-}
+    # ifdef MAP_CONSISTENCY_CHECK
+    	cerr << __PRETTY_FUNCTION__ <<  ": trajectories end" << endl;
+    	cerr << __PRETTY_FUNCTION__ << ": performing afterclone_fit_test" << endl;
+    	ParticleVector::const_iterator jt=cloned->m_particles.begin();
+    	for (ParticleVector::const_iterator it=m_particles.begin(); it!=m_particles.end(); it++){
+    	  const ScanMatcherMap& m1(it->map);
+    	  const ScanMatcherMap& m2(jt->map);
+    	  const HierarchicalArray2D<PointAccumulator>& h1(m1.storage());
+    	  const HierarchicalArray2D<PointAccumulator>& h2(m2.storage());
+    	  jt++;
+     	  for (int x=0; x<h1.getXSize(); x++){
+    	    for (int y=0; y<h1.getYSize(); y++){
+    	      const autoptr< Array2D<PointAccumulator> >& a1(h1.m_cells[x][y]);
+    	      const autoptr< Array2D<PointAccumulator> >& a2(h2.m_cells[x][y]);
+    	      assert(a1.m_reference==a2.m_reference);
+    	      assert((!a1.m_reference) || !(a1.m_reference->shares%2));
+    	    }
+    	  }
+    	}
+    	cerr << __PRETTY_FUNCTION__ <<  ": SUCCESS, the error is somewhere else" << endl;
+    # endif
+    	return cloned;
+ }
   
   GridSlamProcessor::~GridSlamProcessor()
   {
     cerr << __PRETTY_FUNCTION__ << ": Start" << endl;
     cerr << __PRETTY_FUNCTION__ << ": Deleting tree" << endl;
-    for (std::vector<Particle>::iterator it=m_particles.begin(); it!=m_particles.end(); it++){
-#ifdef TREE_CONSISTENCY_CHECK		
-      TNode* node=it->node;
-      while(node)
-	node=node->parent;
-      cerr << "@" << endl;
-#endif
-      if (it->node)
-	delete it->node;
-      //cout << "l=" << it->weight<< endl;
-    }
+    for (std::vector<Particle>::iterator it=m_particles.begin(); it!=m_particles.end(); it++)
+    {
+    #ifdef TREE_CONSISTENCY_CHECK		
+          TNode* node=it->node;
+          while(node)
+    	node=node->parent;
+          cerr << "@" << endl;
+    #endif
+          if (it->node)
+    	delete it->node;
+          //cout << "l=" << it->weight<< endl;
+   }
     
 # ifdef MAP_CONSISTENCY_CHECK
     cerr << __PRETTY_FUNCTION__ << ": performing predestruction_fit_test" << endl;
@@ -195,8 +196,6 @@ using namespace std;
     cerr << __PRETTY_FUNCTION__ << ": SUCCESS, the error is somewhere else" << endl;
 # endif
   }
-
-
 
   /*
   @desc 设置扫描匹配的参数 各个参数的定义
@@ -244,9 +243,6 @@ void GridSlamProcessor::setMotionModelParameters
     m_angularThresholdDistance=angular;
     m_resampleThreshold=resampleThreshold;	
   }
-  
-  //HERE STARTS THE BEEF
-
 //  不知道为什么 如果加上了低分辨率的地图 那么这个构造函数就在编译的时候就会报错。
 //  只有改成下面那样的构造函数才行。
 //  GridSlamProcessor::Particle::Particle(const ScanMatcherMap& m):
@@ -314,15 +310,16 @@ void GridSlamProcessor::setMotionModelParameters
 
     //粒子对应的地图进行初始化 用两个地图来进行初始化 一个高分辨率地图 一个低分辨率地图
     //高分辨率地图由自己指定 低分辨率地图固定为0.1m
-    //定义最终使用的地图数据类型 cell类型为PointAccumulator 存储数据类型为HierarchicalArray2D<PointAccumulator>
+    //定义最终使用的地图数据类型 cell类型为 PointAccumulator 存储数据类型为HierarchicalArray2D<PointAccumulator>
     // typedef Map<PointAccumulator,HierarchicalArray2D<PointAccumulator> > ScanMatcherMap;
     ScanMatcherMap lmap(Point(xmin+xmax, ymin+ymax)*.5, xmax-xmin, ymax-ymin, delta);
     ScanMatcherMap lowMap(Point(xmin+xmax,ymin+ymax)*0.5,xmax-xmin,ymax-ymin,　0.1);
-    for (unsigned int i=0; i<size; i++)
+    for (unsigned int i=0; i<size; i++)    // size是粒子数
 	  {
       m_particles.push_back(Particle(lmap,lowMap));
       //m_particles.push_back(Particle(lmap));
       m_particles.back().pose　=　initialPose;
+      // 开始时，前一帧的粒子位姿也是 initialPose
       m_particles.back().previousPose　=　initialPose;
       m_particles.back().setWeight(0);
       m_particles.back().previousIndex=0;
@@ -349,6 +346,7 @@ void GridSlamProcessor::setMotionModelParameters
   }
   /*
    * 在scanmatcherprocessor里面也有一个这样的函数 但是那个函数是没有使用的
+
   @desc 处理一帧激光数据 这里是gmapping算法的主要函数。
   在这个函数里面调用其他的函数，包括里程计预测、激光测量更新、粒子采样等等步骤。
   
@@ -360,32 +358,30 @@ void GridSlamProcessor::setMotionModelParameters
   */
   bool GridSlamProcessor::processScan(const RangeReading & reading, int adaptParticles)
   {
-    /**retireve the position from the reading, and compute the odometry*/
-    /*得到当前的里程计的位置*/
-	OrientedPoint relPose=reading.getPose();
-    //relPose.y = m_odoPose.y;
-    
-	/*m_count表示这个函数被调用的次数 如果是第0次调用,则所有的位姿都是一样的*/
-	if (!m_count)
-	{
-      m_lastPartPose=m_odoPose=relPose;
-    }
-    
-    //write the state of the reading and update all the particles using the motion model
-	/*对于每一个粒子，都从里程计运动模型中采样，得到车子的初步估计位置  这一步对应于   里程计的更新 */
-    int tmp_size = m_particles.size();
+      /**retireve the position from the reading, and compute the odometry*/
+      /*得到当前的里程计的位置*/
+  	  OrientedPoint relPose=reading.getPose();
+      //relPose.y = m_odoPose.y;
+        
+    	/*m_count表示这个函数被调用的次数 如果是第0次调用,则所有的位姿都是一样的*/
+  	  if (!m_count)
+  	  {
+        m_lastPartPose=m_odoPose=relPose;
+      }
+  	  /*对于每一个粒子，都从里程计运动模型中采样，得到车子的初步估计位置  这一步对应于   里程计的更新 */
+      int tmp_size = m_particles.size();
 
-//这个for循环显然可以用OpenMP进行并行化
-//#pragma omp parallel for
-    for(int i = 0; i < tmp_size;i++)
-    {
-        OrientedPoint& pose(m_particles[i].pose);
-        pose = m_motionModel.drawFromMotion(m_particles[i],relPose,m_odoPose);
-    }
+      //这个for循环显然可以用OpenMP进行并行化
+      //#pragma omp parallel for
+      for(int i = 0; i < tmp_size;i++)
+      {
+          OrientedPoint& pose(m_particles[i].pose);
+          pose = m_motionModel.drawFromMotion(m_particles[i],relPose,m_odoPose);
+      }
 
-    //invoke the callback
-    /*回调函数  实际上什么都没做*/
-    onOdometryUpdate();
+      //invoke the callback
+      /*回调函数  实际上什么都没做*/
+      onOdometryUpdate();
     
     // accumulate the robot translation and rotation
     /*根据两次里程计的数据 计算出来机器人的线性位移和角度位移的累积值 m_odoPose表示上一次的里程计位姿  relPose表示新的里程计的位姿*/
@@ -406,7 +402,7 @@ void GridSlamProcessor::setMotionModelParameters
      * 例如里程计数据出错 或者 激光雷达很久没有数据等等
      * 每次进行激光雷达的更新之后 m_linearDistance这个参数就会清零
      */
-    if (m_linearDistance>m_distanceThresholdCheck)
+    if (m_linearDistance > m_distanceThresholdCheck)
     {
       cerr << "***********************************************************************" << endl;
       cerr << "********** Error: m_distanceThresholdCheck overridden!!!! *************" << endl;
@@ -421,18 +417,15 @@ void GridSlamProcessor::setMotionModelParameters
       cerr << "** crap or can lead to a core dump since the map doesn't fit.... C&G **" << endl;
       cerr << "***********************************************************************" << endl;
     }
-    
-    //更新 把当前的位置赋值给旧的位置
+    //更新:把当前的位置赋值给旧的位置
     m_odoPose=relPose;
     
     bool processed=false;
-
-    // process a scan only if the robot has traveled a given distance or a certain amount of time has elapsed
-	/*只有当机器人走过一定的距离  或者 旋转过一定的角度  或者过一段指定的时间才处理激光数据*/
+	  /*只有当机器人走过一定的距离  或者 旋转过一定的角度  或者过一段指定的时间才处理激光数据*/
     if (! m_count 
 	|| m_linearDistance>=m_linearThresholdDistance 
 	|| m_angularDistance>=m_angularThresholdDistance
-    || (period_ >= 0.0 && (reading.getTime() - last_update_time_) > period_))
+    || (period_ >= 0.0 && (reading.getTime() - last_update_time_) > period_) )
 	{
           last_update_time_ = reading.getTime();
 
@@ -475,7 +468,7 @@ void GridSlamProcessor::setMotionModelParameters
           }
           //这个备份主要是用来储存的。
           RangeReading* reading_copy;
-
+          ROS_INFO("77777777777777");
           //champion_nav_msgs激光数据
           if(reading.m_angles.size() == reading.m_dists.size())
           {
@@ -494,6 +487,7 @@ void GridSlamProcessor::setMotionModelParameters
                                    static_cast<const RangeSensor*>(reading.getSensor()),
                                    reading.getTime());
           }
+          ROS_INFO("9999999999999");
           /*如果不是第一帧数据*/
           if (m_count>0)
           {
@@ -566,6 +560,7 @@ void GridSlamProcessor::setMotionModelParameters
  }
   
   
+
   std::ofstream& GridSlamProcessor::outputStream(){
     return m_outputStream;
   }

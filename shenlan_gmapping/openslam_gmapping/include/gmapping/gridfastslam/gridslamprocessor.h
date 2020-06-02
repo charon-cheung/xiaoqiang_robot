@@ -32,12 +32,13 @@ namespace GMapping {
      In order to avoid unnecessary computation the filter state is updated 
      only when the robot moves more than a given threshold.
 	 
-	 这个类实现了一个GridFastSLAM算法。实现了一个RBPF，每个粒子都拥有自己的地图和机器人位姿。
-	 工作流程如下：
-	 每当收到里程计数据和激光雷达的数据之后，每个粒子的位姿根据运动模型来更新。
-	 根据运动模型更新得到的新的位置随后被用来初始化scan-match算法。
-	 scan-matcher为每个粒子执行了一个局部优化算法。
-	 scan-matcher被用运动模型得到的位置来初始化，然后根据自己的地图来优化位置。
+	 这个类实现了一个GridFastSLAM算法。实现了一个RBPF，每个粒子都拥有自己的地图和机器人位姿
+
+	                         工作流程如下
+	 1. 每当收到里程计数据和激光雷达的数据之后，每个粒子的位姿根据运动模型来更新。
+	 2. 根据运动模型更新得到的新的位置随后被用来初始化scan-match算法。
+	 3. scan-matcher为每个粒子执行了一个局部优化算法。
+	 4. scan-matcher被用运动模型得到的位置来初始化，然后根据自己的地图来优化位置
 	 
 	 为了减少不必要的计算量，滤波器的状态必须要在机器人运动了一段距离之后才更新
   */
@@ -48,54 +49,45 @@ namespace GMapping {
        Each node of a tree has a pointer to its parent and a counter indicating the number of childs of a node.
        The tree is updated in a way consistent with the operation performed on the particles.
 	   
-	   //树的节点，一个树储存了一整条轨迹，一个节点表示这条轨迹中的其中一个点。
-	   //因为FastSLAM是一个full SLAM的方法，因此它需要存储机器人的整条轨迹
+	   // 树的节点，一个树储存了一整条轨迹，一个节点表示这条轨迹中的其中一个点。
+	   // 因为FastSLAM是一个full SLAM的方法，因此它需要存储机器人的整条轨迹
 
-	   //轨迹上的一个节点(相当于一帧)存储了一下几个信息：
-	       机器人的位姿
-         该节点粒子的权重
-         轨迹前面所有的节点的粒子的权重之和
-		     指向父节点的指针
-		     子节点的数量
+	   // 轨迹上的一个节点(相当于一帧)存储了一下几个信息：
+  	       机器人的位姿
+           该节点粒子的权重
+           轨迹前面所有的节点的粒子的权重之和
+  		     指向父节点的指针
+  		     子节点的数量
    */
     struct TNode
     {
-      /**Constructs a node of the trajectory tree.
-       @param pose:      the pose of the robot in the trajectory
-       @param weight:    the weight of the particle at that point in the trajectory
-       @param accWeight: the cumulative weight of the particle
-       @param parent:    the parent node in the tree
-       @param childs:    the number of childs
-      */
+      //Constructs a node of the trajectory tree.
       TNode(const OrientedPoint& pose, double weight, TNode* parent=0, unsigned int childs=0);
 
       /**Destroys a tree node, and consistently updates the tree. If a node whose parent has only one child is deleted,
        also the parent node is deleted. This because the parent will not be reacheable anymore in the trajectory tree.*/
       ~TNode();
 
-      /**The pose of the robot*/
 	  　　//该节点机器人的位姿
       OrientedPoint pose; 
       
-      /**The weight of the particle*/
-	  //该节点粒子的权重
+	    //该节点粒子的权重
       double weight;
 
       /**The sum of all the particle weights in the previous part of the trajectory*/
-      // 轨迹前面所有节点的粒子的权重之和 该节点的子节点纸盒
+      // 轨迹前面所有节点的粒子的权重之和, 该节点的子节点之和
       double accWeight;
 
       double gweight;
 
-      /**The parent*/
-      //指向父节点的指针 这里没有指向子节点的指针 因此每个粒子的路径都是记录最近的一个点，然后通过parent指针遍历整条路径
+      /* 指向父节点的指针,这里没有指向子节点的指针,因此每个粒子的路径
+      都是记录最近的一个点，然后通过parent指针遍历整条路径 */
       TNode* parent;
 
       /**The range reading to which this node is associated*/
       // 该节点激光雷达的读数
       const RangeReading* reading;
 
-      /**The number of childs*/
       // 该节点的子节点的数量
       unsigned int childs;
 
@@ -109,62 +101,59 @@ namespace GMapping {
     typedef std::vector<GridSlamProcessor::TNode*> TNodeVector;
     typedef std::deque<GridSlamProcessor::TNode*> TNodeDeque;
     
-    /**This class defines a particle of the filter. Each particle has a map, a pose, a weight and retains the current node in the trajectory tree*/
-    /*
+    /*  包含current node in the trajectory tree*
      * 粒子滤波器中的粒子结构体  每个粒子有自己的地图、位姿、权重、轨迹
      * 轨迹是按照时间顺序排列的，叶子节点表示最近的节点
      */
     struct Particle
     {
-      /**constructs a particle, given a map
-	 @param map: the particle map
-      */
+      //constructs a particle, given a map
       Particle(const ScanMatcherMap& map);
 
       //给定两个地图 一个高分辨率地图 一个低分辨率地图
       Particle(const ScanMatcherMap& map,const ScanMatcherMap& lowMap);
 
-      /** @returns the weight of a particle */
+      /** 粒子权重 */
       inline operator double() const {return weight;}
-      /** @returns the pose of a particle */
+      /** 粒子(机器人)的位姿 */
       inline operator OrientedPoint() const {return pose;}
-      /** sets the weight of a particle
-	  @param w the weight
-      */
+
+      // 设定粒子权重
       inline void setWeight(double w) {weight=w;}
-      /** The map  地图 高分辨率地图*/
+
+      /** The map   高分辨率地图*/
       ScanMatcherMap map;
 
-      /*存储最近的N帧激光雷达的数据 用来生成临时地图 从而进行CSM*/
-      std::vector<GMapping::RangeReading*> running_scans;
-
-      /*低分辨率地图 用来进行CSM*/
+      /* 低分辨率地图，用来进行CSM */
       ScanMatcherMap lowResolutionMap;
 
-      /** The pose of the robot 机器人位姿*/
+      /* 存储最近的N帧激光雷达的数据，用来生成临时地图，从而进行CSM */
+      std::vector<GMapping::RangeReading*> running_scans;
+
+      /* The pose of the robot 机器人位姿 */
       OrientedPoint pose;
-      /** The pose of the robot at the previous time frame (used for computing thr odometry displacements) */
-      /*机器人上一帧的位姿 这个位姿是用来计算里程计的位移的*/
+
+      /* The pose of the robot at the previous time frame (used for computing thr odometry displacements) */
+      /* 机器人上一帧的位姿 这个位姿是用来计算里程计的位移的 */
 	  　　OrientedPoint previousPose;
 
-      /** The weight of the particle */
       /*粒子的权重*/
 	  　　double weight;
 
-      /** The cumulative weight of the particle */
       /*粒子的累计权重*/
 	  　　double weightSum;
       double gweight;
-      /** The index of the previous particle in the trajectory tree */
-      /*上一个粒子的下标*/
+      
+      /* trajectory tree中，上一个粒子的下标 */
 	  　　int previousIndex;
 
-      /** Entry to the trajectory tree */
-      // 该粒子对应的整条轨迹 记录的是粒子的最近的一个节点
+      /* Entry to the trajectory tree */
+      // 记录的是粒子的最近的一个节点
       TNode* node; 
     };
     typedef std::vector<Particle> ParticleVector;
     
+
     /** Constructs a GridSlamProcessor, initialized with the default parameters */
     GridSlamProcessor();
 

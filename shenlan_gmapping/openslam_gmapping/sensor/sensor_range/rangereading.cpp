@@ -52,6 +52,7 @@ RangeReading::~RangeReading(){
 /*
 返回经过density过滤之后的激光束的值
 其中被过滤掉的激光的值，都被赋值为MAX
+只在ScanMatcherProcessor::processScan调用
 */
 unsigned int RangeReading::rawView(double* v, double density) const
 {
@@ -168,4 +169,3 @@ std::vector<Point> RangeReading::cartesianForm(double maxRange) const
 }
 
 };
-

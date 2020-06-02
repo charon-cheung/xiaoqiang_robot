@@ -419,7 +419,7 @@ SlamGMapping::~SlamGMapping()
         delete scan_filter_sub_;
 }
 
-/*得到里程计的位姿 即激光雷达在里程计坐标系中的位姿*/
+//得到里程计的位姿gmap_pose，即t时间戳时，激光雷达在里程计坐标系中的位姿
 bool SlamGMapping::getOdomPose(GMapping::OrientedPoint& gmap_pose, const ros::Time& t)
 {
     // Get the pose of the centered laser at the right time
@@ -581,7 +581,6 @@ bool SlamGMapping::initMapper(const sensor_msgs::LaserScan& scan)
     gsp_odom_ = new GMapping::OdometrySensor(odom_frame_);
     ROS_ASSERT(gsp_odom_);
 
-
     /// @todo Expose setting an initial pose
     /// 得到里程计的初始位姿，如果没有 则把初始位姿设置为(0,0,0)
     GMapping::OrientedPoint initialPose;
@@ -621,18 +620,17 @@ bool SlamGMapping::initMapper(const sensor_msgs::LaserScan& scan)
     return true;
 }
 
-/*
- * 加入一个激光雷达的数据 主要函数 这里面会调用processScan()函数
- * 这个函数被laserCallback()函数调用
-*/
+
+ // 加入一个激光雷达的数据 主要函数 这里面会调用processScan()函数
+ // 这个函数被laserCallback()函数调用
+    // gmap_pose为刚定义的
 bool SlamGMapping::addScan(const sensor_msgs::LaserScan& scan, GMapping::OrientedPoint& gmap_pose)
 {
     //得到与激光的时间戳相对应的机器人的里程计的位姿
     if(!getOdomPose(gmap_pose, scan.header.stamp))
         return false;
 
-    //检测是否所有帧的数据都是相等的 如果不相等就进行计算 不知道为什么 感觉完全没必要啊。
-    //特别是对于champion_nav_msgs的LaserScan来说 激光束的数量经常变
+    //检测是否所有帧的数据都是相等的 如果不相等就return
     if(scan.ranges.size() != gsp_laser_beam_count_)
         return false;
 
@@ -640,8 +638,7 @@ bool SlamGMapping::addScan(const sensor_msgs::LaserScan& scan, GMapping::Oriente
     double* ranges_double = new double[scan.ranges.size()];
 
     // If the angle increment is negative, we have to invert the order of the readings.
-    // 如果激光是反着装的，这激光的顺序需要反过来，同时这里会排除掉所有激光距离小于range_min的值。
-    // 排除的方式是把他们设置为最大值
+    // 如果激光是反着装的，这激光的顺序需要反过来
     if (do_reverse_range_)
     {
         ROS_DEBUG("Inverting scan");
@@ -659,26 +656,24 @@ bool SlamGMapping::addScan(const sensor_msgs::LaserScan& scan, GMapping::Oriente
     {
         for(unsigned int i=0; i < scan.ranges.size(); i++)
         {
-            // Must filter out short readings, because the mapper won't
+            // mapper那里无法过滤掉
+            // 排除掉所有激光距离小于range_min的值，排除的方式是把他们设置为最大值，是否可优化？
             if(scan.ranges[i] < scan.range_min)
                 ranges_double[i] = (double)scan.range_max;
             else
                 ranges_double[i] = (double)scan.ranges[i];
         }
     }
-
     //把ROS的激光雷达数据信息 转换为 GMapping算法看得懂的形式
+    // 激光传感器gsp_laser_在initMapper里定义，ranges数据赋值给m_dists，size给m_beams
     GMapping::RangeReading reading(scan.ranges.size(),
                                    ranges_double,
                                    gsp_laser_,
                                    scan.header.stamp.toSec());
-
-    // ...but it deep copies them in RangeReading constructor, so we don't
-    // need to keep our array around.
     // 上面的初始话是进行深拷贝 因此申请的内存可以直接释放。
     delete[] ranges_double;
 
-    //设置和激光数据的时间戳匹配的机器人的位姿
+    //设置和激光数据的时间戳匹配的机器人的位姿   不是雷达位姿吗???
     reading.setPose(gmap_pose);
 
     ROS_DEBUG("processing scan");
@@ -688,17 +683,13 @@ bool SlamGMapping::addScan(const sensor_msgs::LaserScan& scan, GMapping::Oriente
 }
 
 /*
- * 接受到激光雷达数据的回调函数 在这里面调用addScan()函数
  * 如果addScan()函数调用成功，也就是说激光数据被成功的插入到地图中后，
  * 如果到了地图更新的时间，则对地图进行更新，通过调用updateMap()函数来进行相应的操作。
  *
- * laserCallback()->addScan()->gmapping::processScan()
- *                ->updateMap()
- *
+ * laserCallback()->addScan()->gmapping::processScan()->updateMap()
 */
 void SlamGMapping::laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan)
 {
-
     laser_count_++;
     if ((laser_count_ % throttle_scans_) != 0)
         return;
