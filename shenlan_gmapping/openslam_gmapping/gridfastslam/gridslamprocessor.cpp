@@ -345,7 +345,7 @@ void GridSlamProcessor::setMotionModelParameters
     }
   }
   /*
-   * 在scanmatcherprocessor里面也有一个这样的函数 但是那个函数是没有使用的
+  在scanmatcherprocessor里面也有一个这样的函数 但是那个函数是没有使用的
 
   @desc 处理一帧激光数据 这里是gmapping算法的主要函数。
   在这个函数里面调用其他的函数，包括里程计预测、激光测量更新、粒子采样等等步骤。
@@ -359,16 +359,16 @@ void GridSlamProcessor::setMotionModelParameters
   bool GridSlamProcessor::processScan(const RangeReading & reading, int adaptParticles)
   {
       /**retireve the position from the reading, and compute the odometry*/
-      /*得到当前的里程计的位置*/
+      /*得到当前的里程计的位置  addScan最后的setPose */
   	  OrientedPoint relPose=reading.getPose();
       //relPose.y = m_odoPose.y;
-        
-    	/*m_count表示这个函数被调用的次数 如果是第0次调用,则所有的位姿都是一样的*/
+
+    	/*m_count表示这个函数被调用的次数，开始为0,如果是第0次调用,则所有的位姿都是一样的*/
   	  if (!m_count)
   	  {
         m_lastPartPose=m_odoPose=relPose;
       }
-  	  /*对于每一个粒子，都从里程计运动模型中采样，得到车子的初步估计位置  这一步对应于   里程计的更新 */
+  	  /*对于每一个粒子，都从里程计运动模型中采样，得到车子的初步估计位置  这一步对应里程计的更新 */
       int tmp_size = m_particles.size();
 
       //这个for循环显然可以用OpenMP进行并行化
@@ -378,30 +378,27 @@ void GridSlamProcessor::setMotionModelParameters
           OrientedPoint& pose(m_particles[i].pose);
           pose = m_motionModel.drawFromMotion(m_particles[i],relPose,m_odoPose);
       }
-
-      //invoke the callback
       /*回调函数  实际上什么都没做*/
       onOdometryUpdate();
     
     // accumulate the robot translation and rotation
-    /*根据两次里程计的数据 计算出来机器人的线性位移和角度位移的累积值 m_odoPose表示上一次的里程计位姿  relPose表示新的里程计的位姿*/
-    OrientedPoint move=relPose-m_odoPose;
+    // 根据两次里程计的数据,计算机器人的线性位移和角度位移的累积值
+    // m_odoPose表示上一次的里程计位姿   relPose表示新的里程计的位姿
+    OrientedPoint move = relPose-m_odoPose;
     move.theta=atan2(sin(move.theta), cos(move.theta));
 
     //统计机器人在进行激光雷达更新之前 走了多远的距离 以及　平移了多少的角度
-    m_linearDistance+=sqrt(move*move);
+    // 这两个变量最后还是要清零
+    m_linearDistance+=sqrt(move*move);   // x²+y²的开方
     m_angularDistance+=fabs(move.theta);
 
-//    cerr <<"linear Distance:"<<m_linearDistance<<endl;
-//    cerr <<"angular Distance:"<<m_angularDistance<<endl;
-    
     // if the robot jumps throw a warning
     /*
      * 如果机器人在走了m_distanceThresholdCheck这么远的距离都没有进行激光雷达的更新
      * 则需要进行报警。这个误差很可能是里程计或者激光雷达的BUG造成的。
      * 例如里程计数据出错 或者 激光雷达很久没有数据等等
      * 每次进行激光雷达的更新之后 m_linearDistance这个参数就会清零
-     */
+     m_distanceThresholdCheck在开头定义为5 */
     if (m_linearDistance > m_distanceThresholdCheck)
     {
       cerr << "***********************************************************************" << endl;
@@ -421,54 +418,29 @@ void GridSlamProcessor::setMotionModelParameters
     m_odoPose=relPose;
     
     bool processed=false;
-	  /*只有当机器人走过一定的距离  或者 旋转过一定的角度  或者过一段指定的时间才处理激光数据*/
+	  /*只有当机器人走过一定的距离或者旋转过一定的角度,或者过一段指定的时间才处理激光数据*/
+    // 否则太低效了， period_被构造函数写死成5秒，可以考虑修改
+    // 如果不符合这个条件，直接到最后的 m_readingCount++;
     if (! m_count 
-	|| m_linearDistance>=m_linearThresholdDistance 
-	|| m_angularDistance>=m_angularThresholdDistance
+	       || m_linearDistance >=m_linearThresholdDistance 
+	       || m_angularDistance >=m_angularThresholdDistance
     || (period_ >= 0.0 && (reading.getTime() - last_update_time_) > period_) )
 	{
           last_update_time_ = reading.getTime();
 
-          std::cout <<std::endl<<"Start to Process Scan##################"<<std::endl;
-
-          if (m_outputStream.is_open())
-          {
-              m_outputStream << setiosflags(ios::fixed) << setprecision(6);
-              m_outputStream << "FRAME " <<  m_readingCount;
-              m_outputStream << " " << m_linearDistance;
-              m_outputStream << " " << m_angularDistance << endl;
-          }
-
-//          if (m_infoStream)
-//          {
-//              m_infoStream << "update frame " <<  m_readingCount << endl
-//                           << "update ld=" << m_linearDistance << " ad=" << m_angularDistance << endl;
-
-//              m_infoStream << "FRAME " <<  m_readingCount<<endl;
-//              m_infoStream <<"Scan-Match Number: "<<m_count<<endl;
-//          }
-//          cerr << "Laser Pose= " << reading.getPose().x << " " << reading.getPose().y
-//                 << " " << reading.getPose().theta << endl;
+          std::cout <<std::endl<<"Start to Process Scan"<<std::endl;
 
           //this is for converting the reading in a scan-matcher feedable form
           /*复制一帧数据 把激光数据转换为scan-match需要的格式*/
-//          if(reading.getSize() != m_beams)
-//          {
-//              cerr<<"********************************************"<<endl;
-//              cerr<<"********************************************"<<endl;
-//              cerr<<"reading_size:"<<reading.getSize()<<"  m_beams:"<<m_beams<<endl;
-//              cerr<<"********************************************"<<endl;
-//              cerr<<"********************************************"<<endl;
-//          }
           int beam_number = reading.getSize();
           double * plainReading = new double[beam_number];
           for(unsigned int i=0; i<beam_number; i++)
           {
             plainReading[i]=reading.m_dists[i];
           }
-          //这个备份主要是用来储存的。
+          #if 0
           RangeReading* reading_copy;
-          ROS_INFO("77777777777777");
+          
           //champion_nav_msgs激光数据
           if(reading.m_angles.size() == reading.m_dists.size())
           {
@@ -487,7 +459,7 @@ void GridSlamProcessor::setMotionModelParameters
                                    static_cast<const RangeSensor*>(reading.getSensor()),
                                    reading.getTime());
           }
-          ROS_INFO("9999999999999");
+          #endif
           /*如果不是第一帧数据*/
           if (m_count>0)
           {
@@ -518,14 +490,12 @@ void GridSlamProcessor::setMotionModelParameters
           /*如果是第一帧激光数据*/
           else
           {
-            //如果是第一帧数据，则可以直接计算activeArea。因为这个时候，对机器人的位置是非常确定的，就是(0,0,0)
+            //如果是第一帧数据，则可以直接计算activeArea  因为这个时候，机器人的位置就是(0,0,0)
             for (ParticleVector::iterator it=m_particles.begin(); it!=m_particles.end(); it++)
             {
                 m_matcher.invalidateActiveArea();
                 m_matcher.computeActiveArea(it->map, it->pose, plainReading);
                 m_matcher.registerScan(it->map, it->pose, plainReading);
-                //m_matcher.registerScan(it->lowResolutionMap,it->pose,plainReading);
-
                 //为每个粒子创建路径的第一个节点。该节点的权重为0,父节点为it->node(这个时候为NULL)。
                 //因为第一个节点就是轨迹的根，所以没有父节点
                 TNode* node=new	TNode(it->pose, 0., it->node,  0);

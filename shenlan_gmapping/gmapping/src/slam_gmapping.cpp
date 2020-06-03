@@ -441,7 +441,7 @@ bool SlamGMapping::getOdomPose(GMapping::OrientedPoint& gmap_pose, const ros::Ti
                                         odom_pose.getOrigin().y(),
                                         yaw);
     return true;
-}
+}`
 
 /**
  * @brief SlamGMapping::initMapper  gmapping算法的初始化
@@ -451,14 +451,11 @@ bool SlamGMapping::getOdomPose(GMapping::OrientedPoint& gmap_pose, const ros::Ti
  * 1.判断激光雷达是否是水平放置的，如果不是 则报错。
  * 2.假设激光雷达数据的角度是对称的 & 递增的 为每个激光束分配角度。
  * 3.为gmapping算法设置各种需要的参数。
- *
- *
  * @param scan
  * @return
  */
 bool SlamGMapping::initMapper(const sensor_msgs::LaserScan& scan)
 {
-
     //得到激光雷达相对于车身坐标系(base_link)的位姿
     laser_frame_ = scan.header.frame_id;
     // Get the laser's pose, relative to base.
@@ -665,7 +662,7 @@ bool SlamGMapping::addScan(const sensor_msgs::LaserScan& scan, GMapping::Oriente
         }
     }
     //把ROS的激光雷达数据信息 转换为 GMapping算法看得懂的形式
-    // 激光传感器gsp_laser_在initMapper里定义，ranges数据赋值给m_dists，size给m_beams
+    //激光传感器gsp_laser_在initMapper里定义，ranges数据赋值给m_dists，size给m_beams
     GMapping::RangeReading reading(scan.ranges.size(),
                                    ranges_double,
                                    gsp_laser_,
@@ -685,7 +682,6 @@ bool SlamGMapping::addScan(const sensor_msgs::LaserScan& scan, GMapping::Oriente
 /*
  * 如果addScan()函数调用成功，也就是说激光数据被成功的插入到地图中后，
  * 如果到了地图更新的时间，则对地图进行更新，通过调用updateMap()函数来进行相应的操作。
- *
  * laserCallback()->addScan()->gmapping::processScan()->updateMap()
 */
 void SlamGMapping::laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan)
@@ -693,9 +689,7 @@ void SlamGMapping::laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan)
     laser_count_++;
     if ((laser_count_ % throttle_scans_) != 0)
         return;
-
     static ros::Time last_map_update(0,0);
-
     // We can't initialize the mapper until we've got the first scan
     if(!got_first_scan_)
     {
@@ -707,7 +701,7 @@ void SlamGMapping::laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan)
     GMapping::OrientedPoint odom_pose;
     if(addScan(*scan, odom_pose))
     {
-        ROS_DEBUG("scan processed");
+        ROS_INFO("scan processed");
 
         GMapping::OrientedPoint mpose = gsp_->getParticles()[gsp_->getBestParticleIndex()].pose;
         ROS_DEBUG("new best pose: %.3f %.3f %.3f", mpose.x, mpose.y, mpose.theta);

@@ -44,12 +44,12 @@ struct PointAccumulator
 };
 
 /*
-@desc 更新某个Cell的状态
+ 更新某个Cell的状态
 
 如果被击中 则需要对cell的值进行累加
 
-@value 表示是否被击中
-@p     表示被击中的坐标  世界坐标系
+value 表示是否被击中
+p     表示被击中的坐标  世界坐标系
 */
 void PointAccumulator::update(bool value, const Point& p)
 {
@@ -65,7 +65,7 @@ void PointAccumulator::update(bool value, const Point& p)
 }
 
 /*
-#@desc 该点的熵，表示该点被击中的概率对应的熵。
+# 该点的熵，表示该点被击中的概率对应的熵。
 */
 double PointAccumulator::entropy() const
 {

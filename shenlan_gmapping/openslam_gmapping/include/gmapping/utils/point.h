@@ -119,9 +119,8 @@ orientedpoint<T,A> operator * (const T& v, const orientedpoint<T,A>& p){
 	return orientedpoint<T,A>(p.x*v, p.y*v, p.theta*v);
 }
 
-/*
-@desc 两个位姿的差值，算出来P1在以P2为原点的坐标系里面的坐标。
-*/
+
+// 两个位姿的差值，算出来P1在以P2为原点的坐标系里面的坐标。
 template <class T, class A>
 orientedpoint<T,A> absoluteDifference(const orientedpoint<T,A>& p1,const orientedpoint<T,A>& p2)
 {
