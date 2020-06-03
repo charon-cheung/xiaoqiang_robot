@@ -359,20 +359,18 @@ void GridSlamProcessor::setMotionModelParameters
   bool GridSlamProcessor::processScan(const RangeReading & reading, int adaptParticles)
   {
       /**retireve the position from the reading, and compute the odometry*/
-      /*得到当前的里程计的位置  addScan最后的setPose */
+      /*得到当前的里程计的位置  来自addScan最后的setPose */
   	  OrientedPoint relPose=reading.getPose();
-      //relPose.y = m_odoPose.y;
 
-    	/*m_count表示这个函数被调用的次数，开始为0,如果是第0次调用,则所有的位姿都是一样的*/
+    	/* m_count表示这个函数被调用的次数,开始为0,如果是第0次调用,则所有的位姿都是一样的 */
   	  if (!m_count)
   	  {
         m_lastPartPose=m_odoPose=relPose;
       }
-  	  /*对于每一个粒子，都从里程计运动模型中采样，得到车子的初步估计位置  这一步对应里程计的更新 */
+  	  /* 对于每一个粒子，都从里程计运动模型中采样，得到车子的初步估计位置  这一步对应里程计的更新 */
       int tmp_size = m_particles.size();
 
       //这个for循环显然可以用OpenMP进行并行化
-      //#pragma omp parallel for
       for(int i = 0; i < tmp_size;i++)
       {
           OrientedPoint& pose(m_particles[i].pose);
@@ -382,12 +380,12 @@ void GridSlamProcessor::setMotionModelParameters
       onOdometryUpdate();
     
     // accumulate the robot translation and rotation
-    // 根据两次里程计的数据,计算机器人的线性位移和角度位移的累积值
+    // 根据两次里程计的数据, 计算机器人的线性位移和角度位移的累积值
     // m_odoPose表示上一次的里程计位姿   relPose表示新的里程计的位姿
     OrientedPoint move = relPose-m_odoPose;
     move.theta=atan2(sin(move.theta), cos(move.theta));
 
-    //统计机器人在进行激光雷达更新之前 走了多远的距离 以及　平移了多少的角度
+    //统计机器人在进行激光雷达更新之前，走了多远的距离，变化了多少的角度
     // 这两个变量最后还是要清零
     m_linearDistance+=sqrt(move*move);   // x²+y²的开方
     m_angularDistance+=fabs(move.theta);
@@ -397,7 +395,7 @@ void GridSlamProcessor::setMotionModelParameters
      * 如果机器人在走了m_distanceThresholdCheck这么远的距离都没有进行激光雷达的更新
      * 则需要进行报警。这个误差很可能是里程计或者激光雷达的BUG造成的。
      * 例如里程计数据出错 或者 激光雷达很久没有数据等等
-     * 每次进行激光雷达的更新之后 m_linearDistance这个参数就会清零
+     * 每次进行激光雷达的更新之后 m_linearDistance 这个参数就会清零
      m_distanceThresholdCheck在开头定义为5 */
     if (m_linearDistance > m_distanceThresholdCheck)
     {
