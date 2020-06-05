@@ -50,21 +50,21 @@ ScanMatcher::ScanMatcher(): m_laserPose(0,0,0)
 
     //跳过一帧激光数据的开始几束激光
 	m_initialBeamsSkip=0;	
-/*	
-	// This  are the dafault settings for a grid map of 10 cm
-	m_llsamplerange=0.1;
-	m_llsamplestep=0.1;
-	m_lasamplerange=0.02;
-	m_lasamplestep=0.01;
-*/	
-	// This  are the dafault settings for a grid map of 20/25 cm
-/*
-	m_llsamplerange=0.2;
-	m_llsamplestep=0.1;
-	m_lasamplerange=0.02;
-	m_lasamplestep=0.01;
-	m_generateMap=false;
-*/
+	/*	
+		// This  are the dafault settings for a grid map of 10 cm
+		m_llsamplerange=0.1;
+		m_llsamplestep=0.1;
+		m_lasamplerange=0.02;
+		m_lasamplestep=0.01;
+	*/	
+		// This  are the dafault settings for a grid map of 20/25 cm
+	/*
+		m_llsamplerange=0.2;
+		m_llsamplestep=0.1;
+		m_lasamplerange=0.02;
+		m_lasamplestep=0.01;
+		m_generateMap=false;
+	*/
 
    m_linePoints = new IntPoint[20000];
 }
@@ -84,13 +84,13 @@ void ScanMatcher::invalidateActiveArea()
 }
 
 /*
-@desc 计算有效区域，通过激光雷达的数据计算出来哪个地图栅格应该要被更新了。(这里只是计算出来栅格的位置，然后插入地图中,并不对数据进行更新)
+@desc 计算有效区域，通过激光雷达的数据计算出来哪个地图栅格应该要被更新了。
+这里只是计算出来栅格的位置，然后插入地图中,并不对数据进行更新
 这里计算的有效区域的坐标都是patch坐标，不是cell坐标
 
-注意！！！！！：：
-这个函数在正常的进行SLAM算法的过程中，使用了m_generateMap = false。这个时候不会为了空闲区域分配内存。
+注意！！！：
+这个函数在正常的进行SLAM算法的过程中，m_generateMap = false。这个时候不会为了空闲区域分配内存。
 当要生成可视化的地图的时候,m_generateMap = true。这个时候就会为空闲区域分配内存
-
 
 @param map			地图
 @param p			机器人位置
