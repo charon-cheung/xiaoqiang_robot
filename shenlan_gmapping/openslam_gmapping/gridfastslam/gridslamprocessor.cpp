@@ -382,7 +382,7 @@ void GridSlamProcessor::setMotionModelParameters
     // accumulate the robot translation and rotation
     // 根据两次里程计的数据, 计算机器人的线性位移和角度位移的累积值
     // m_odoPose表示上一次的里程计位姿   relPose表示新的里程计的位姿
-    OrientedPoint move = relPose-m_odoPose;
+    OrientedPoint move = relPose - m_odoPose;
     move.theta=atan2(sin(move.theta), cos(move.theta));
 
     //统计机器人在进行激光雷达更新之前，走了多远的距离，变化了多少的角度
@@ -491,6 +491,7 @@ void GridSlamProcessor::setMotionModelParameters
             //如果是第一帧数据，则可以直接计算activeArea  因为这个时候，机器人的位置就是(0,0,0)
             for (ParticleVector::iterator it=m_particles.begin(); it!=m_particles.end(); it++)
             {
+                // 每次调用computeActiveArea()之前，都必须要调用这个函数
                 m_matcher.invalidateActiveArea();
                 m_matcher.computeActiveArea(it->map, it->pose, plainReading);
                 m_matcher.registerScan(it->map, it->pose, plainReading);
