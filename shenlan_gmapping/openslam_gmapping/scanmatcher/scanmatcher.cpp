@@ -367,7 +367,7 @@ double ScanMatcher::optimize(OrientedPoint& pnew, const ScanMatcherMap& map, con
     OrientedPoint currentPose=init;
     double currentScore=score(map, currentPose, readings);
 	
-    /*所有时的步进增量*/
+    /*步进增量,参数lstep  astep*/
     double adelta=m_optAngularDelta, ldelta=m_optLinearDelta;
 	
     /*精确搜索的次数*/
@@ -375,11 +375,11 @@ double ScanMatcher::optimize(OrientedPoint& pnew, const ScanMatcherMap& map, con
 	
     /*搜索的方向*/
     enum Move{Front, Back, Left, Right, TurnLeft, TurnRight, Done};
-    //enum Move{Front, Back, Left, Right, TurnLeft, TurnRight, Done};
     int c_iterations=0;
     do
     {
-        /*如果这一次(currentScore)算出来比上一次(bestScore)差，则有可能是走太多了，要减少搜索步长 这个策略跟LM有点像*/
+        /*如果这一次(currentScore)算出来比上一次(bestScore)差，有可能是走太多了
+        要减少搜索步长 这个策略跟LM有点像*/
         if (bestScore>=currentScore)
         {
             refinement++;
@@ -454,7 +454,7 @@ double ScanMatcher::optimize(OrientedPoint& pnew, const ScanMatcherMap& map, con
             c_iterations++;
         } while(move!=Done);
 		
-        /* 把当前位置设置为目前最优的位置  如果8个值都被差了的话，那么这个值不会更新*/
+        /* 把当前位置设为目前最优的位置  如果8个值都被差了的话，那么这个值不会更新*/
         currentPose=bestLocalPose;
     }while (currentScore>bestScore || refinement<m_optRecursiveIterations);
 	

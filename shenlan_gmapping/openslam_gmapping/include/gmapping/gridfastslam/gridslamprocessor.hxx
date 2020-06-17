@@ -10,8 +10,6 @@
 /*
  * 这个文件中实现的是gridslamprocessor.h里面的三个内联函数
 */
-
-
 /**Just scan match every single particle.
 If the scan matching fails, the particle gets a default likelihood.
 @desc 为每一个粒子都计算扫描匹配。扫描匹配即为在里程计的基础上，通过优化求得位姿
@@ -36,7 +34,8 @@ inline void GridSlamProcessor::scanMatch(const double* plainReading)
     OrientedPoint corrected;
     double score, l, s;
 
-    /*进行scan-match 计算粒子的最优位姿 调用scanmatcher.cpp里面的函数 --这是gmapping本来的做法*/
+    /*进行scan-match 计算粒子的最优位姿 调用scanmatcher.cpp里面的函数 
+    --这是gmapping本来的做法*/
     score=m_matcher.optimize(corrected, m_particles[i].map, m_particles[i].pose, plainReading);
 
     /*矫正成功则更新位姿*/

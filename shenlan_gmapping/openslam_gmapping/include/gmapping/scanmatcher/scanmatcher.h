@@ -271,18 +271,17 @@ inline double ScanMatcher::icpStep(OrientedPoint & pret, const ScanMatcherMap& m
 }
 
 /*
-@desc 		根据地图、机器人位置、激光雷达数据，计算出一个得分：原理为likelihood_field_range_finder_model
-这个函数被scanmatcher.cpp里面的optimize(OrientedPoint& pnew, const ScanMatcherMap& map, const OrientedPoint& init, const double* readings)
-调用
+根据地图、机器人位置、激光雷达数据，计算出一个得分：原理为likelihood_field_range_finder_model
+被scanmatcher.cpp里面的optimize调用
 @map  		对应的地图
 @p    		机器人对应的初始位置
 @readings	激光雷达数据
-*/
+score(map, currentPose, readings);      */
 inline double ScanMatcher::score(const ScanMatcherMap& map, const OrientedPoint& p, const double* readings) const
 {
     double s=0;
     const double * angle=m_laserAngles+m_initialBeamsSkip;
-    OrientedPoint lp=p;
+    OrientedPoint lp=p;    // 当前点的位姿
     /*
     把激光雷达的坐标转换到世界坐标系
     先旋转到机器人坐标系，然后再转换到世界坐标系
@@ -300,21 +299,23 @@ inline double ScanMatcher::score(const ScanMatcherMap& map, const OrientedPoint&
     unsigned int skip=0;
     double freeDelta=map.getDelta()*m_freeCellRatio;
 
-
     //枚举所有的激光束
     for (const double* r=readings+m_initialBeamsSkip; r<readings+m_laserBeams; r++, angle++)
     {
+        /*每隔 m_likelihoodSkip 个激光束 就跳过一个激光束*/
         skip++;
         skip=skip>m_likelihoodSkip?0:skip;
-        if (skip||*r>m_usableRange||*r==0.0) continue;
+        if (skip || *r>m_usableRange ||  *r==0.0)
+            continue;
 
         /*被激光雷达击中的点 在地图坐标系中的坐标*/
         Point phit=lp;
-        phit.x+=*r*cos(lp.theta+*angle);
-        phit.y+=*r*sin(lp.theta+*angle);
-        IntPoint iphit=map.world2map(phit);
+        phit.x+= *r*cos(lp.theta+*angle);
+        phit.y+= *r*sin(lp.theta+*angle);
+        IntPoint iphit = map.world2map(phit);
 
-        /*该束激光的最后一个空闲坐标，即紧贴hitCell的freeCell 原理为：假设phit是被激光击中的点，这样的话沿着激光方向的前面一个点必定的空闲的*/
+        /*该束激光的最后一个空闲坐标，即紧贴hitCell的freeCell 
+        原理为：假设phit是被激光击中的点，这样的话沿着激光方向的前面一个点必定的空闲*/
         Point pfree=lp;
         //理论上来说 这个应该是一个bug。修改成下面的之后，改善不大。
         //		pfree.x+=(*r-map.getDelta()*freeDelta)*cos(lp.theta+*angle);
@@ -326,7 +327,7 @@ inline double ScanMatcher::score(const ScanMatcherMap& map, const OrientedPoint&
         pfree=pfree-phit;
         IntPoint ipfree=map.world2map(pfree);
 
-        /*在kernelSize大小的窗口中搜索出最优最可能被这个激光束击中的点 这个kernelSize在大小为1*/
+        /*在kernelSize大小的窗口中搜索出最优最可能被这个激光束击中的点,大小为1*/
         bool found=false;
         Point bestMu(0.,0.);
         for (int xx=-m_kernelSize; xx<=m_kernelSize; xx++)
@@ -340,10 +341,11 @@ inline double ScanMatcher::score(const ScanMatcherMap& map, const OrientedPoint&
                 const PointAccumulator& cell=map.cell(pr);
                 const PointAccumulator& fcell=map.cell(pf);
                 /*
-            (double)cell返回的是该cell被占用的概率
-            这束激光要合法必须要满足cell是被占用的，而fcell是空闲的
-            原理为：假设phit是被激光击中的点，这样的话沿着激光方向的前面一个点必定的空闲的
-            */
+                cell返回的是该cell被占用的概率
+                这束激光要合法必须要满足cell是被占用的，而fcell是空闲的
+                原理为：假设phit是被激光击中的点，这样的话沿着激光方向的前面一个点必定是空闲的
+                如果cell(pr)被占用 而cell(pf)没有被占用 则说明找到了一个合法的点 
+                    m_fullnessThreshold 默认0.1 */  
                 if (((double)cell )> m_fullnessThreshold && ((double)fcell )<m_fullnessThreshold)
                 {
                     /*计算出被击中的点与对应的cell的currentScore距离*/
@@ -364,8 +366,6 @@ inline double ScanMatcher::score(const ScanMatcherMap& map, const OrientedPoint&
         {
             double tmp_score = exp(-1.0/m_gaussianSigma*bestMu*bestMu);
             s += tmp_score;
-            //只在周围的9个栅格里面寻找，因此平方的意义不大。
-            //s += tmp_score*tmp_score;
         }
     }
         return s;
