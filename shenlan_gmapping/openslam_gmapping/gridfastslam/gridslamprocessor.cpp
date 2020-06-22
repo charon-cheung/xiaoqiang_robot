@@ -436,28 +436,7 @@ void GridSlamProcessor::setMotionModelParameters
           {
             plainReading[i]=reading.m_dists[i];
           }
-          #if 0
-          RangeReading* reading_copy;
-          
-          //champion_nav_msgs激光数据
-          if(reading.m_angles.size() == reading.m_dists.size())
-          {
-              reading_copy = new RangeReading(beam_number,
-                                   &(reading.m_dists[0]),
-                                   &(reading.m_angles[0]),
-                                   static_cast<const RangeSensor*>(reading.getSensor()),
-                                   reading.getTime());
 
-          }
-          //ros的激光数据
-          else
-          {
-              reading_copy = new RangeReading(beam_number,
-                                   &(reading.m_dists[0]),
-                                   static_cast<const RangeSensor*>(reading.getSensor()),
-                                   reading.getTime());
-          }
-          #endif
           /*如果不是第一帧数据*/
           if (m_count>0)
           {
@@ -467,10 +446,8 @@ void GridSlamProcessor::setMotionModelParameters
             这个函数在gridslamprocessor.hxx里面。
             */
             scanMatch(plainReading);
-
             //至此 关于proposal的更新完毕了，接下来是计算权重
             onScanmatchUpdate();
-
             /*
             由于scanMatch中对粒子的权重进行了更新，那么这个时候各个粒子的轨迹上的累计权重都需要重新计算
             这个函数即更新各个粒子的轨迹上的累计权重是更新
@@ -491,7 +468,7 @@ void GridSlamProcessor::setMotionModelParameters
             //如果是第一帧数据，则可以直接计算activeArea  因为这个时候，机器人的位置就是(0,0,0)
             for (ParticleVector::iterator it=m_particles.begin(); it!=m_particles.end(); it++)
             {
-                // 每次调用computeActiveArea()之前，都必须要调用这个函数
+                // m_activeAreaComputed=false;  computeActiveArea()之前，都必须要调用这个函数
                 m_matcher.invalidateActiveArea();
                 m_matcher.computeActiveArea(it->map, it->pose, plainReading);
                 m_matcher.registerScan(it->map, it->pose, plainReading);

@@ -38,12 +38,13 @@ inline void GridSlamProcessor::scanMatch(const double* plainReading)
     --这是gmapping本来的做法*/
     score=m_matcher.optimize(corrected, m_particles[i].map, m_particles[i].pose, plainReading);
 
-    /*矫正成功则更新位姿*/
+    /*矫正成功则更新最优位姿*/
     if (score>m_minimumScore)
     {
       m_particles[i].pose = corrected;
     }
-    /*扫描匹配不上 则使用里程计的数据 使用里程计数据不进行更新  因为在进行扫描匹配之前 里程计已经更新过了*/
+    /*  扫描匹配不上,则使用里程计的数据,使用里程计数据不进行更新.
+          因为在进行扫描匹配之前 里程计已经更新过了*/
     else
     {
         //输出信息 这个在并行模式下可以会出现错位
@@ -54,13 +55,13 @@ inline void GridSlamProcessor::scanMatch(const double* plainReading)
             m_infoStream << "op:" << m_odoPose.x << " " << m_odoPose.y << " "<< m_odoPose.theta <<std::endl;
         }
     }
+    // 粒子的最优位姿计算了之后，重新计算粒子的权重,相当于粒子滤波器中的观测步骤
+    /* 计算p(z|x,m)，粒子的权重由粒子的似然来表示
+       计算粒子的得分和权重(似然)   注意粒子的权重经过ScanMatch之后已经更新了
+     * 在论文中   粒子的权重不是用最优位姿的似然值来表示的
+     * 是用所有的似然值的和来表示的
+      s是得分  l是似然,也就是权重 */
 
-    //粒子的最优位姿计算了之后，重新计算粒子的权重(相当于粒子滤波器中的观测步骤，计算p(z|x,m))，粒子的权重由粒子的似然来表示。
-    /*
-     * 计算粒子的得分和权重(似然)   注意粒子的权重经过ScanMatch之后已经更新了
-     * 在论文中 例子的权重不是用最有位姿的似然值来表示的。
-     * 是用所有的似然值的和来表示的。
-     */
     m_matcher.likelihoodAndScore(s, l, m_particles[i].map, m_particles[i].pose, plainReading);
 
     sumScore+=score;
@@ -70,7 +71,7 @@ inline void GridSlamProcessor::scanMatch(const double* plainReading)
     //set up the selective copy of the active area
     //by detaching the areas that will be updated
     /*计算出来最优的位姿之后，进行地图的扩充  这里不会进行内存分配
-     *不进行内存分配的原因是这些粒子进行重采样之后有可能会消失掉，因此在后面进行冲采样的时候统一进行内存分配。
+     *不进行内存分配的原因是这些粒子进行重采样之后有可能会消失掉，因此在后面进行重采样的时候统一进行内存分配。
      *理论上来说，这里的操作是没有必要的，因为后面的重采样的时候还会进行一遍
      */
     m_matcher.invalidateActiveArea();

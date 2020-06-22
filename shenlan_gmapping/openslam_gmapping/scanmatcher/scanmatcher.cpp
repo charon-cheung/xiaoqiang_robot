@@ -50,21 +50,6 @@ ScanMatcher::ScanMatcher(): m_laserPose(0,0,0)
 
     //跳过一帧激光数据的开始几束激光
 	m_initialBeamsSkip=0;	
-	/*	
-		// This  are the dafault settings for a grid map of 10 cm
-		m_llsamplerange=0.1;
-		m_llsamplestep=0.1;
-		m_lasamplerange=0.02;
-		m_lasamplestep=0.01;
-	*/	
-		// This  are the dafault settings for a grid map of 20/25 cm
-	/*
-		m_llsamplerange=0.2;
-		m_llsamplestep=0.1;
-		m_lasamplerange=0.02;
-		m_lasamplestep=0.01;
-		m_generateMap=false;
-	*/
 
    m_linePoints = new IntPoint[20000];
 }
@@ -126,7 +111,6 @@ void ScanMatcher::computeActiveArea(ScanMatcherMap& map, const OrientedPoint& p,
 	{
 		/*去除不合理的值*/
 		if (*r>m_laserMaxRange||*r==0.0||isnan(*r)) continue;
-
         //根据设置截断gmapping的值
 		double d=*r>m_usableRange?m_usableRange:*r;
 		
@@ -141,9 +125,7 @@ void ScanMatcher::computeActiveArea(ScanMatcherMap& map, const OrientedPoint& p,
 		if (phit.x>max.x) max.x=phit.x;
 		if (phit.y>max.y) max.y=phit.y;
 	}
-	//min=min-Point(map.getDelta(),map.getDelta());
-	//max=max+Point(map.getDelta(),map.getDelta());
-	
+
 	/*如果地图需要扩展*/
 	if ( !map.isInside(min)	|| !map.isInside(max))
 	{
@@ -185,7 +167,7 @@ void ScanMatcher::computeActiveArea(ScanMatcherMap& map, const OrientedPoint& p,
 			IntPoint p0=map.world2map(lp);
 			IntPoint p1=map.world2map(phit);
 			
-            /*bresenham算法来计算激光起点到终点要经过的路径*/
+            /*bresenham算法 来计算激光起点到终点要经过的路径*/
 			GridLineTraversalLine line;
 			line.points=m_linePoints;
 			GridLineTraversal::gridLine(p0, p1, &line);
@@ -453,7 +435,6 @@ double ScanMatcher::optimize(OrientedPoint& pnew, const ScanMatcherMap& map, con
             }
             c_iterations++;
         } while(move!=Done);
-		
         /* 把当前位置设为目前最优的位置  如果8个值都被差了的话，那么这个值不会更新*/
         currentPose=bestLocalPose;
     }while (currentScore>bestScore || refinement<m_optRecursiveIterations);

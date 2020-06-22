@@ -417,7 +417,7 @@ inline unsigned int ScanMatcher::likelihoodAndScore(double& s, double& l, const 
         if (*r>m_usableRange) continue;
         if (skip) continue;
 
-        /*被激光击中的点*/
+        /*被激光击中的点及其在地图中的索引点,该点在地图中被占用*/
         Point phit=lp;
         phit.x+=*r*cos(lp.theta+*angle);
         phit.y+=*r*sin(lp.theta+*angle);
@@ -455,17 +455,17 @@ inline unsigned int ScanMatcher::likelihoodAndScore(double& s, double& l, const 
                     }
                 }
             }
-        /*计算得分 得分是只计有用的激光束*/
+        /*计算得分 得分是只计有用的激光束 */
         if (found)
         {
             s+=exp(-1./m_gaussianSigma*bestMu*bestMu);
             c++;
         }
-
-        /*计算似然 似然是计算所有的激光束 如果某一个激光束打中了空地 那也需要计算进去*/
+        /*  计算似然,似然是计算所有的激光束.如果某一个激光束打中了空地
+            那也需要计算进去  */
         if (!skip)
         {
-            //似然不是指数 似然只是指数的上标
+            //似然不是指数, 似然只是指数的上标
             double f=(-1./m_likelihoodSigma)*(bestMu*bestMu);
             l+=(found)?f:noHit;
         }
