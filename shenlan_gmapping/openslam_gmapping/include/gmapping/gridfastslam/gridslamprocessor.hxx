@@ -128,25 +128,19 @@ inline void GridSlamProcessor::normalize()
 
 /*
 @desc 粒子滤波器重采样。
-
-分为两步：
 1.需要重采样，则所有保留下来的粒子的轨迹都加上一个新的节点，然后进行地图更新。
 2.不需要冲采样，则所有的粒子的轨迹都加上一个新的节点，然后进行地图的更新
-
 在重采样完毕之后，会调用registerScan函数来更新地图
 */
 inline bool GridSlamProcessor::resample(const double* plainReading, int adaptSize, const RangeReading* reading)
 {
-  
   bool hasResampled = false;
-  
   /*备份老的粒子的轨迹  即保留叶子节点 在增加新节点的时候使用*/
   TNodeVector oldGeneration;
   for (unsigned int i=0; i<m_particles.size(); i++)
   {
     oldGeneration.push_back(m_particles[i].node);
   }
-  
   /*如果需要进行重采样*/
   if (m_neff<m_resampleThreshold*m_particles.size())
   {		
@@ -210,7 +204,7 @@ inline bool GridSlamProcessor::resample(const double* plainReading, int adaptSiz
     }
 
     while(j<m_indexes.size())
-	{
+	  {
       deletedParticles.push_back(j);
       j++;
     }
@@ -238,7 +232,7 @@ inline bool GridSlamProcessor::resample(const double* plainReading, int adaptSiz
     //在并行化操作里面 m_particles.push_back()会报错 因此并行化 需要把push_back()提出来。
     //在外面的的for循环进行
     int tmp_size = temp.size();
-//#pragma omp parallel for
+#pragma omp parallel for
     for(int i = 0; i<tmp_size;i++)
     {
         //对保留下来的粒子数据进行更新
