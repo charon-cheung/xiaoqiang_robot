@@ -371,10 +371,10 @@ void GridSlamProcessor::setMotionModelParameters
       int tmp_size = m_particles.size();
 
       //这个for循环显然可以用OpenMP进行并行化
-      for(int i = 0; i < tmp_size;i++)
+      for (ParticleVector::iterator it=m_particles.begin(); it!=m_particles.end(); it++)
       {
-          OrientedPoint& pose(m_particles[i].pose);
-          pose = m_motionModel.drawFromMotion(m_particles[i],relPose,m_odoPose);
+        OrientedPoint& pose(it->pose);
+        pose=m_motionModel.drawFromMotion(it->pose, relPose, m_odoPose);
       }
       /*回调函数  实际上什么都没做*/
       onOdometryUpdate();
