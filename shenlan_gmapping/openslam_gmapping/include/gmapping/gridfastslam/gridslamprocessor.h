@@ -142,7 +142,7 @@ namespace GMapping {
 
       /*粒子的累计权重*/
 	  　　double weightSum;
-      double gweight;
+        double gweight;
       
       /* trajectory tree中，上一个粒子的下标 */
 	  　　int previousIndex;

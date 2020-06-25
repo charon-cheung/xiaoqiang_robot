@@ -318,7 +318,7 @@ void GridSlamProcessor::setMotionModelParameters
 	  {
       m_particles.push_back(Particle(lmap,lowMap));
       //m_particles.push_back(Particle(lmap));
-      m_particles.back().pose　=　initialPose;
+      m_particles.back().pose　= initialPose;
       // 开始时，前一帧的粒子位姿也是 initialPose
       m_particles.back().previousPose　=　initialPose;
       m_particles.back().setWeight(0);
@@ -371,10 +371,10 @@ void GridSlamProcessor::setMotionModelParameters
       int tmp_size = m_particles.size();
 
       //这个for循环显然可以用OpenMP进行并行化
-      for(int i = 0; i < tmp_size;i++)
+      for (ParticleVector::iterator it=m_particles.begin(); it!=m_particles.end(); it++)
       {
-          OrientedPoint& pose(m_particles[i].pose);
-          pose = m_motionModel.drawFromMotion(m_particles[i],relPose,m_odoPose);
+        OrientedPoint& pose(it->pose);
+        pose=m_motionModel.drawFromMotion(it->pose, relPose, m_odoPose);
       }
       /*回调函数  实际上什么都没做*/
       onOdometryUpdate();
@@ -447,7 +447,6 @@ void GridSlamProcessor::setMotionModelParameters
             */
             scanMatch(plainReading);
             //至此 关于proposal的更新完毕了，接下来是计算权重
-            onScanmatchUpdate();
             /*
             由于scanMatch中对粒子的权重进行了更新，那么这个时候各个粒子的轨迹上的累计权重都需要重新计算
             这个函数即更新各个粒子的轨迹上的累计权重是更新

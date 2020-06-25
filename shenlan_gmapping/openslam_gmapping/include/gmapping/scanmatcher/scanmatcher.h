@@ -283,10 +283,11 @@ inline double ScanMatcher::score(const ScanMatcherMap& map, const OrientedPoint&
     const double * angle=m_laserAngles+m_initialBeamsSkip;
     OrientedPoint lp=p;    // 当前点的位姿
     /*
-    把激光雷达的坐标转换到世界坐标系
+    这里的lp就是 drawFromMotion函数返回的加噪声的 m_particles[i]->pose
+    下面是把把激光雷达的坐标转换到世界坐标系:
     先旋转到机器人坐标系，然后再转换到世界坐标系
     p表示base_link在map中的坐标
-    m_laserPose 表示base_laser在base_link坐标系中的坐标
+    m_laserPose 表示laser在base_link坐标系中的坐标
     */
     lp.x+=cos(p.theta)*m_laserPose.x-sin(p.theta)*m_laserPose.y;
     lp.y+=sin(p.theta)*m_laserPose.x+cos(p.theta)*m_laserPose.y;

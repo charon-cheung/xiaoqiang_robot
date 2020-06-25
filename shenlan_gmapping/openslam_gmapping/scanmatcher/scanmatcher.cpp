@@ -536,7 +536,6 @@ double ScanMatcher::optimize(OrientedPoint& _mean, ScanMatcher::CovarianceMatrix
 			double localScore, localLikelihood;
 			
             //计算似然的增益
-
             //如果里程计很可靠的话，那么现在的位姿如果离里程计位姿比较远的话，就需要加入惩罚
 			double odo_gain=1;
             if (m_angularOdometryReliability>0.)
@@ -553,23 +552,19 @@ double ScanMatcher::optimize(OrientedPoint& _mean, ScanMatcher::CovarianceMatrix
 				double drho=dx*dx+dy*dy;
 				odo_gain*=exp(-m_linearOdometryReliability*drho);
 			}
-
             //这个分数根本就没有用。。。不知道搞什么鬼
 			localScore=odo_gain*score(map, localPose, readings);
 			//update the score
 			count++;
-			
-            /*重新计算score 和 localLikelihood 也就是说上面计算得到的score是没有用的*/
+            /*重新计算score 和 localLikelihood 也就是说上面计算得到的 score 是没有用的*/
             //这里面调用的是scanmatcher.h这个文件家里面的likelihoodAndScore函数
 			matched=likelihoodAndScore(localScore, localLikelihood, map, localPose, readings);
-
             //如果大于当前得分 则需要进行更新
             if (localScore>currentScore)
             {
 				currentScore=localScore;
 				bestLocalPose=localPose;
 			}
-			
             //记录下来所有经过的点 以及对应的似然
 			sm.score=localScore;
 			sm.likelihood=localLikelihood;//+log(odo_gain);

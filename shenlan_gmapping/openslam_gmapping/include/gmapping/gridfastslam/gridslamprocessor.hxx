@@ -144,7 +144,6 @@ inline bool GridSlamProcessor::resample(const double* plainReading, int adaptSiz
   /*如果需要进行重采样*/
   if (m_neff<m_resampleThreshold*m_particles.size())
   {		
-    
     if (m_infoStream)
       m_infoStream  << "*************RESAMPLE***************" << std::endl;
     

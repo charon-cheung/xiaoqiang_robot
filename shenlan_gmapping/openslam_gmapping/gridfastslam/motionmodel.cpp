@@ -59,27 +59,6 @@ MotionModel::drawFromMotion(const OrientedPoint& p, const OrientedPoint& pnew, c
 	return absoluteSum(p,noisypoint);
 }
 
-/*
-OrientedPoint 
-MotionModel::drawFromMotion(const OrientedPoint& p, const OrientedPoint& pnew, const OrientedPoint& pold) const{
-	
-	//compute the three stps needed for perfectly matching the two poses if the noise is absent
-	
-	OrientedPoint delta=pnew-pold;
-	double aoffset=atan2(delta.y, delta.x);
-	double alpha1=aoffset-pold.theta;
-	alpha1=atan2(sin(alpha1), cos(alpha1));
-	double rho=sqrt(delta*delta);
-	double alpha2=pnew.theta-aoffset;
-	alpha2=atan2(sin(alpha2), cos(alpha2));
-	
-	OrientedPoint pret=drawFromMotion(p, 0, alpha1);
-	pret=drawFromMotion(pret, rho, 0);
-	pret=drawFromMotion(pret, 0, alpha2);
-	return pret;
-}
-*/
-
 Covariance3 MotionModel::gaussianApproximation(const OrientedPoint& pnew, const OrientedPoint& pold) const
 {
 	OrientedPoint delta=absoluteDifference(pnew,pold);
